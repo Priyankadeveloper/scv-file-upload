@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+
+</head>
+
+<body>
+    <div id="wrap">
+        <div class="container">
+            <div class="row">
+
+                <form class="form-horizontal" method="post" name="upload_excel" enctype="multipart/form-data">
+                    <fieldset>
+
+                        <!-- Form Name -->
+                        <legend>Form Name</legend>
+
+                        <!-- File Button -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="filebutton">Select File</label>
+                            <div class="col-md-4">
+                                <input type="file" name="file" id="file" class="input-large">
+                            </div>
+                        </div>
+
+                        <!-- Button -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="singlebutton">Import data</label>
+                            <div class="col-md-4">
+                                <button type="submit" id="submit" name="Import" class="btn btn-primary button-loading" data-loading-text="Loading...">Import</button>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </form>
+
+            </div>
+           
+        </div>
+    </div>
+</body>
+
+</html>
+<?php
+//$connect=mysql_connect("localhost","root","","csvfileupload");
+ if(isset($_POST["Import"])){
+ 	  $connect=mysqli_connect("localhost","root","","csvfileupload");
+
+		
+		$filename=$_FILES["file"]["tmp_name"];		
+
+
+		if($_FILES["file"]["size"] > 0)
+		{ 
+		  
+		    if($file = fopen($filename, "r"))
+		    { $i=0;
+		  		$stored=[];
+
+		    while (($getData = fgetcsv($file, 10000, ",")) !== FALSE)
+		    { 
+	         
+		         	if(!empty($getData[1] && $getData[2] && $getData[3])&& filter_var($getData[2], FILTER_VALIDATE_EMAIL) && preg_match('/^[0-9]{10}+$/',$getData[3])){
+	                  
+	              
+	                    if (in_array($getData[1], $stored)) {
+
+	                       echo "<script type=\"text/javascript\">
+							alert(\"Found Dublicate Entry,Remove Dublicate Entry.\");
+							</script>";
+
+                         continue;
+
+                        }
+						$query="CREATE TABLE user (
+						id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
+						name VARCHAR(30) NOT NULL,
+						email VARCHAR(30) NOT NULL,
+						phone VARCHAR(50)
+						)";
+		                //echo $query,"<br>";
+		                mysqli_query($connect,$query);
+		               
+	                    $sql = "INSERT into user(id,name,email,phone) 
+	                    values ('".$getData[0]."','".$getData[1]."','".$getData[2]."','".$getData[3]."')";
+	                          $stored[] = $getData[1];
+	                          $stored[3] = $getData[3];
+                          /*  $stored[] = $getData[2];*/
+
+                             $result = mysqli_query($connect,$sql);
+                    }
+
+
+            }
+        }
+
+				if(isset($result))
+				{
+
+					 echo "<script type=\"text/javascript\">
+						alert(\"CSV File has been successfully Imported.\");
+							</script>";
+
+							
+				}
+				echo "<center><b>Data Inserted Successfully</center></b>";
+				
+	        //}
+			
+	         fclose($file);	
+		 }
+
+		else{?>
+		 	<script>
+
+		 	alert("please Enter the file");
+		 	</script>
+           <?php 
+
+		 }
+	}	 
+
+
+?>
+
